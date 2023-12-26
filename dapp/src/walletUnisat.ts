@@ -1,20 +1,20 @@
 import { blockchain } from '@ckb-lumos/base';
 import { bytes } from '@ckb-lumos/codec';
-import { BI, Hash, RPC, Script, Transaction, config, helpers, utils } from '@ckb-lumos/lumos';
-import { bech32, bech32m } from "bech32";
+import { BI, DepType, Hash, HashType, RPC, Script, Transaction, config, helpers, utils } from '@ckb-lumos/lumos';
+import { bech32 } from 'bech32';
 
 const conf = {
     lumos: config.predefined.AGGRON4,
     url: 'https://testnet.ckb.dev',
     unisat: {
-        codeHash: '0x82d76d1b75fe2fd9a27dfbaa65a039221a380d76c926f378d3f81cf3e7e13f2e',
-        hashType: 'data',
+        codeHash: '0x7d6c0a3af5d58c4b59081505446fb3db44bf69af34024c78f40cc4fecec723b7',
+        hashType: 'data1' as HashType,
         cellCep: {
             outPoint: {
-                txHash: '0x44b3212de8c8b1aaabf241c3526bf44264e8acbda0cb9ac353d4bd07fc34021e',
-                index: 0,
+                txHash: '0xd03ff5967b7136e2415303cc0733ced5ced4fe84ea97b50b64ae32c9f64538ec',
+                index: '0x0',
             },
-            depType: 'code',
+            depType: 'code' as DepType,
         }
     }
 }
@@ -26,10 +26,10 @@ interface WalletUnisat {
 }
 
 function walletUnisat(addr: string): WalletUnisat {
-    const script = {
-        codeHash: conf.lumos.SCRIPTS.SECP256K1_BLAKE160.CODE_HASH,
-        hashType: conf.lumos.SCRIPTS.SECP256K1_BLAKE160.HASH_TYPE,
-        args: bytes.hexify(bech32m.fromWords(bech32.decode(addr).words.slice(1))),
+    const script: Script = {
+        codeHash: conf.unisat.codeHash,
+        hashType: conf.unisat.hashType,
+        args: bytes.hexify(bech32.fromWords(bech32.decode(addr).words.slice(1))),
     }
     return {
         script: script,
@@ -47,7 +47,7 @@ function walletUnisat(addr: string): WalletUnisat {
                 })
             }
             console.log(`> F12 console: await unisat.signMessage('${hash.slice(2)}')`)
-            console.log(`<   Signature:`)
+            console.log(`< Base64 sign:`)
             let signBase64 = await readline()
             let sign = Buffer.from(signBase64, 'base64')
             sign[0] = 35 + (sign[0] - 27) % 4
@@ -78,10 +78,7 @@ async function walletUnisatTransfer(
     let changeCapacity = BI.from(0)
     let changeScript = sender.script
     let tx: Transaction = { version: '0x0', cellDeps: [], headerDeps: [], inputs: [], outputs: [], outputsData: [], witnesses: [] }
-    tx.cellDeps.push({
-        outPoint: { txHash: conf.lumos.SCRIPTS.SECP256K1_BLAKE160.TX_HASH, index: conf.lumos.SCRIPTS.SECP256K1_BLAKE160.INDEX },
-        depType: conf.lumos.SCRIPTS.SECP256K1_BLAKE160.DEP_TYPE,
-    })
+    tx.cellDeps.push(conf.unisat.cellCep)
     tx.outputs.push({ capacity: acceptCapacity.toHexString(), lock: acceptScript, type: undefined })
     tx.outputs.push({ capacity: changeCapacity.toHexString(), lock: changeScript, type: undefined })
     tx.outputsData.push('0x')
@@ -127,11 +124,11 @@ async function walletUnisatTransfer(
 
 async function main() {
     const ada = walletUnisat('bc1qngwkvfhwnp79dzfkdw8ylfaptcv9gzvk8ggvd4')
-    console.log(`ada capacity: ${(await walletUnisatCapacity(ada)).div(100000000).toString()}`)
+    console.log(`ada|bc1qngwkvfhwnp79dzfkdw8ylfaptcv9gzvk8ggvd4 capacity: ${(await walletUnisatCapacity(ada)).div(100000000).toString()}`)
     const bob = walletUnisat('bc1qlqve6tdx30j7xsmuappwc5pfh7nml3anxugjke')
-    console.log(`bob capacity: ${(await walletUnisatCapacity(bob)).div(100000000).toString()}`)
-    // const ret = await walletUnisatTransfer(ada, bob.script, BI.from(100).mul(100000000))
-    // console.log(ret)
+    console.log(`bob|bc1qlqve6tdx30j7xsmuappwc5pfh7nml3anxugjke capacity: ${(await walletUnisatCapacity(bob)).div(100000000).toString()}`)
+    const ret = await walletUnisatTransfer(ada, bob.script, BI.from(100).mul(100000000))
+    console.log(ret)
 }
 
 main()
