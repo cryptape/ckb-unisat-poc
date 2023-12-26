@@ -59,8 +59,8 @@ function walletUnisat(addr: string): WalletUnisat {
                     })
                 })
             }
-            console.log(`exec code in browser console: await unisat.signMessage('${hash.slice(2)}')`)
-            console.log('copy sign in cmdline console:')
+            console.log(`run code in browser console: await unisat.signMessage('${hash.slice(2)}')`)
+            console.log('copy signature from console:')
             let signBase64 = await readline()
             let sign = Buffer.from(signBase64, 'base64')
             sign[0] = 35 + (sign[0] - 27) % 4
