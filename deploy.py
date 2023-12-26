@@ -1,4 +1,5 @@
 import ckb
+import sys
 
 user = ckb.scw.Scw(1)
 hole = ckb.core.Script(
@@ -7,16 +8,16 @@ hole = ckb.core.Script(
     bytearray([0] * 20)
 )
 
-print('auth')
-with open('./bin/auth', 'rb') as f:
-    data = f.read()
-    print(ckb.core.hash(data).hex())
-    hash = user.script_deploy(hole, data)
-    print(hash)
+if sys.argv[1] == 'auth':
+    with open('./bin/auth', 'rb') as f:
+        data = f.read()
+        print('0x' + ckb.core.hash(data).hex())
+        hash = user.script_deploy(hole, data)
+        print(hash)
 
-print('unisat')
-with open('./bin/unisat', 'rb') as f:
-    data = f.read()
-    print(ckb.core.hash(data).hex())
-    hash = user.script_deploy(hole, data)
-    print(hash)
+if sys.argv[1] == 'unisat':
+    with open('./unisat/build/release/unisat', 'rb') as f:
+        data = f.read()
+        print('0x' + ckb.core.hash(data).hex())
+        hash = user.script_deploy(hole, data)
+        print(hash)

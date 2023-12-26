@@ -11,6 +11,8 @@
   "license": "ISC",
   "dependencies": {
     "@ckb-lumos/lumos": "^0.21.1",
+    "bs58": "^5.0.0",
+    "commander": "^11.1.0",
     "ts-node": "^10.9.2"
   }
 }

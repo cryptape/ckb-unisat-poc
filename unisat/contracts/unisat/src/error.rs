@@ -12,7 +12,6 @@ pub enum Error {
     SpawnWrongMemoryLimit,
     SpawnExceededMaxPeakMemory,
     // Add customized errors here...
-    ArgsError,
     WitnessError,
     GeneratedMsgError,
     LoadDLError,

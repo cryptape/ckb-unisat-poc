@@ -2,28 +2,30 @@ import { blockchain } from '@ckb-lumos/base';
 import { bytes } from '@ckb-lumos/codec';
 import { BI, DepType, Hash, HashType, RPC, Script, Transaction, config, helpers, utils } from '@ckb-lumos/lumos';
 import { bech32 } from 'bech32';
+import * as bs58 from 'bs58';
+import { program } from 'commander';
 
 const conf = {
     lumos: config.predefined.AGGRON4,
     url: 'https://testnet.ckb.dev',
     script: {
         auth: {
-            codeHash: '0x7d4ebf8efd045af51a89b77c9c012716d51ffc22c0b2e0caeb8acc1273f167c9',
+            codeHash: '0xd58efac8d054943e3db319e20ca74c9861c479208969813f3dc7811a776af9f9',
             hashType: 'data1' as HashType,
             cellCep: {
                 outPoint: {
-                    txHash: '0x481f5fd44c0ec36717e00f823a22b7318bc18d05cf56c932766437549e179347',
+                    txHash: '0xd4f72f0504373ff8effadf44f92c46a0062774fb585ebcacc24eb47b98e2d66a',
                     index: '0x0',
                 },
                 depType: 'code' as DepType,
             }
         },
         unisat: {
-            codeHash: '0xbfb39a6580a22dee007b6d1de689a966ac5c966cdd094fb928dddfe8499e9ef4',
+            codeHash: '0x0a19d5886a6f2c1fe8c03c4c796db07bba7233e825a4d28e7e2d9e4d4e2b5414',
             hashType: 'data1' as HashType,
             cellCep: {
                 outPoint: {
-                    txHash: '0xa889a4aae0f02c2e00e52e71a7fec87c7c795e8e48e8e6238e860f7f57ed246d',
+                    txHash: '0x138fcdbdef2d065577e2bec73d1d6589c66a45412ab4ebcb4ea4db1fe3fcd71a',
                     index: '0x0',
                 },
                 depType: 'code' as DepType,
@@ -34,21 +36,44 @@ const conf = {
 
 interface WalletUnisat {
     script: Script,
-    addr: string,
+    addr: {
+        ckb: string,
+        btc: string,
+    },
     sign(hash: Hash): Promise<Hash>,
 }
 
 function walletUnisat(addr: string): WalletUnisat {
+    let args = '0x'
+    if (addr.startsWith('bc1q')) {
+        // NativeSegwit
+        args = bytes.hexify(bech32.fromWords(bech32.decode(addr).words.slice(1)))
+    }
+    if (addr.startsWith('3')) {
+        // NestedSegwit
+        args = bytes.hexify(bs58.decode(addr).slice(1, 21))
+    }
+    if (addr.startsWith('bc1p')) {
+        // Taproot
+        throw 'unreachable'
+    }
+    if (addr.startsWith('1')) {
+        // Legacy
+        args = bytes.hexify(bs58.decode(addr).slice(1, 21))
+    }
     const script: Script = {
         codeHash: conf.script.unisat.codeHash,
         hashType: conf.script.unisat.hashType,
-        args: bytes.hexify(bech32.fromWords(bech32.decode(addr).words.slice(1))),
+        args: args,
     }
     return {
         script: script,
-        addr: helpers.encodeToAddress(script, {
-            config: conf.lumos,
-        }),
+        addr: {
+            ckb: helpers.encodeToAddress(script, {
+                config: conf.lumos,
+            }),
+            btc: addr,
+        },
         sign: async (hash: Hash): Promise<Hash> => {
             async function readline(): Promise<string> {
                 return new Promise((resolve, _) => {
@@ -63,7 +88,18 @@ function walletUnisat(addr: string): WalletUnisat {
             console.log('copy signature from console:')
             let signBase64 = await readline()
             let sign = Buffer.from(signBase64, 'base64')
-            sign[0] = 35 + (sign[0] - 27) % 4
+            if (addr.startsWith('bc1q')) {
+                sign[0] = 39 + (sign[0] - 27) % 4
+            }
+            if (addr.startsWith('3')) {
+                sign[0] = 35 + (sign[0] - 27) % 4
+            }
+            if (addr.startsWith('bc1p')) {
+                throw 'unreachable'
+            }
+            if (addr.startsWith('1')) {
+                sign[0] = 31 + (sign[0] - 27) % 4
+            }
             return bytes.hexify(sign)
         },
     }
@@ -121,7 +157,9 @@ async function walletUnisatTransfer(
             break
         }
     }
-    console.assert(changeCapacity.gte(BI.from(61).mul(100000000)))
+    if (changeCapacity.lt(BI.from(61).mul(100000000))) {
+        throw 'unreachable'
+    }
     tx.outputs[1].capacity = changeCapacity.toHexString()
     let hasher = new utils.CKBHasher()
     hasher.update(bytes.bytify(utils.ckbHash(blockchain.RawTransaction.pack(tx))))
@@ -141,11 +179,42 @@ async function walletUnisatTransfer(
 
 
 async function main() {
-    const ada = walletUnisat('bc1qngwkvfhwnp79dzfkdw8ylfaptcv9gzvk8ggvd4')
-    console.log(`ada|bc1qngwkvfhwnp79dzfkdw8ylfaptcv9gzvk8ggvd4 capacity: ${(await walletUnisatCapacity(ada)).div(100000000).toString()}`)
-    const bob = walletUnisat('bc1qlqve6tdx30j7xsmuappwc5pfh7nml3anxugjke')
-    console.log(`bob|bc1qlqve6tdx30j7xsmuappwc5pfh7nml3anxugjke capacity: ${(await walletUnisatCapacity(bob)).div(100000000).toString()}`)
-    const ret = await walletUnisatTransfer(ada, bob.script, BI.from(100).mul(100000000))
+    program
+        .option('--address-type <type>', '[0, 1, 2, 3]', '0')
+        .option('--capacity <capacity>', 'CKB', '100')
+    program.parse(process.argv);
+    const options = program.opts();
+
+    let adaAddrBTC = ''
+    let bobAddrBTC = ''
+    if (options.addressType == '0') {
+        adaAddrBTC = 'bc1qngwkvfhwnp79dzfkdw8ylfaptcv9gzvk8ggvd4'
+        bobAddrBTC = 'bc1qlqve6tdx30j7xsmuappwc5pfh7nml3anxugjke'
+    }
+    if (options.addressType == '1') {
+        adaAddrBTC = '38yEUVrMwadmde5oLn9MHvjMvZKsdfYYvE'
+        bobAddrBTC = '3Fq9p6D8xptidAhSrgWJscdfCDbkS1CyJ8'
+    }
+    if (options.addressType == '2') {
+        adaAddrBTC = 'bc1ptty9z984zhagw5c6qegfykjp8lvakwqwr39p3fs3fnzdmd7pmnpq55zgny'
+        bobAddrBTC = 'bc1p76fa25lp3latfssexyhl604kv6f3cz9h4rrsmk92wfr7j7zk572sdfsn07'
+    }
+    if (options.addressType == '3') {
+        adaAddrBTC = '1DZrVYP7wmygHtKgbybD39MVkGSwZ581fq'
+        bobAddrBTC = '1ECwWZfa2LCSCciaKFAsaXLaF7UpqSqW7H'
+    }
+
+    const ada = walletUnisat(adaAddrBTC)
+    console.log(`ada capacity: ${(await walletUnisatCapacity(ada)).div(100000000).toString()}`)
+    console.log(`ada addr.btc: ${ada.addr.btc}`)
+    console.log(`ada addr.ckb: ${ada.addr.ckb}`)
+
+    const bob = walletUnisat(bobAddrBTC)
+    console.log(`bob capacity: ${(await walletUnisatCapacity(bob)).div(100000000).toString()}`)
+    console.log(`bob addr.btc: ${bob.addr.btc}`)
+    console.log(`bob addr.ckb: ${bob.addr.ckb}`)
+
+    const ret = await walletUnisatTransfer(ada, bob.script, BI.from(options.capacity).mul(100000000))
     console.log(`open: https://pudge.explorer.nervos.org/transaction/${ret}`)
 }
 

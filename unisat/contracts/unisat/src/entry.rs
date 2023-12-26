@@ -32,7 +32,7 @@ pub fn main() -> Result<(), Error> {
         pubkey_hash: pubkey_hash,
     };
     let code_hash: [u8; 32] = {
-        let code_hash = hex::decode("7d4ebf8efd045af51a89b77c9c012716d51ffc22c0b2e0caeb8acc1273f167c9").unwrap();
+        let code_hash = hex::decode("d58efac8d054943e3db319e20ca74c9861c479208969813f3dc7811a776af9f9").unwrap();
         code_hash.try_into().unwrap()
     };
     let entry = CkbEntryType {
