@@ -6,17 +6,30 @@ import { bech32 } from 'bech32';
 const conf = {
     lumos: config.predefined.AGGRON4,
     url: 'https://testnet.ckb.dev',
-    unisat: {
-        codeHash: '0x7d6c0a3af5d58c4b59081505446fb3db44bf69af34024c78f40cc4fecec723b7',
-        hashType: 'data1' as HashType,
-        cellCep: {
-            outPoint: {
-                txHash: '0xd03ff5967b7136e2415303cc0733ced5ced4fe84ea97b50b64ae32c9f64538ec',
-                index: '0x0',
-            },
-            depType: 'code' as DepType,
+    script: {
+        auth: {
+            codeHash: '0x7d4ebf8efd045af51a89b77c9c012716d51ffc22c0b2e0caeb8acc1273f167c9',
+            hashType: 'data1' as HashType,
+            cellCep: {
+                outPoint: {
+                    txHash: '0x481f5fd44c0ec36717e00f823a22b7318bc18d05cf56c932766437549e179347',
+                    index: '0x0',
+                },
+                depType: 'code' as DepType,
+            }
+        },
+        unisat: {
+            codeHash: '0xbfb39a6580a22dee007b6d1de689a966ac5c966cdd094fb928dddfe8499e9ef4',
+            hashType: 'data1' as HashType,
+            cellCep: {
+                outPoint: {
+                    txHash: '0xa889a4aae0f02c2e00e52e71a7fec87c7c795e8e48e8e6238e860f7f57ed246d',
+                    index: '0x0',
+                },
+                depType: 'code' as DepType,
+            }
         }
-    }
+    },
 }
 
 interface WalletUnisat {
@@ -27,8 +40,8 @@ interface WalletUnisat {
 
 function walletUnisat(addr: string): WalletUnisat {
     const script: Script = {
-        codeHash: conf.unisat.codeHash,
-        hashType: conf.unisat.hashType,
+        codeHash: conf.script.unisat.codeHash,
+        hashType: conf.script.unisat.hashType,
         args: bytes.hexify(bech32.fromWords(bech32.decode(addr).words.slice(1))),
     }
     return {
@@ -46,8 +59,8 @@ function walletUnisat(addr: string): WalletUnisat {
                     })
                 })
             }
-            console.log(`> F12 console: await unisat.signMessage('${hash.slice(2)}')`)
-            console.log(`< Base64 sign:`)
+            console.log(`exec code in browser console: await unisat.signMessage('${hash.slice(2)}')`)
+            console.log('copy sign in cmdline console:')
             let signBase64 = await readline()
             let sign = Buffer.from(signBase64, 'base64')
             sign[0] = 35 + (sign[0] - 27) % 4
@@ -78,7 +91,12 @@ async function walletUnisatTransfer(
     let changeCapacity = BI.from(0)
     let changeScript = sender.script
     let tx: Transaction = { version: '0x0', cellDeps: [], headerDeps: [], inputs: [], outputs: [], outputsData: [], witnesses: [] }
-    tx.cellDeps.push(conf.unisat.cellCep)
+    tx.cellDeps.push({
+        outPoint: { txHash: conf.lumos.SCRIPTS.SECP256K1_BLAKE160.TX_HASH, index: conf.lumos.SCRIPTS.SECP256K1_BLAKE160.INDEX },
+        depType: conf.lumos.SCRIPTS.SECP256K1_BLAKE160.DEP_TYPE,
+    })
+    tx.cellDeps.push(conf.script.auth.cellCep)
+    tx.cellDeps.push(conf.script.unisat.cellCep)
     tx.outputs.push({ capacity: acceptCapacity.toHexString(), lock: acceptScript, type: undefined })
     tx.outputs.push({ capacity: changeCapacity.toHexString(), lock: changeScript, type: undefined })
     tx.outputsData.push('0x')
@@ -128,7 +146,7 @@ async function main() {
     const bob = walletUnisat('bc1qlqve6tdx30j7xsmuappwc5pfh7nml3anxugjke')
     console.log(`bob|bc1qlqve6tdx30j7xsmuappwc5pfh7nml3anxugjke capacity: ${(await walletUnisatCapacity(bob)).div(100000000).toString()}`)
     const ret = await walletUnisatTransfer(ada, bob.script, BI.from(100).mul(100000000))
-    console.log(ret)
+    console.log(`open: https://pudge.explorer.nervos.org/transaction/${ret}`)
 }
 
 main()

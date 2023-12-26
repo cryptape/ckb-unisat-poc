@@ -4,7 +4,7 @@ use ckb_auth_rs::{
 };
 use ckb_std::{
     ckb_constants::Source,
-    ckb_types::{bytes::Bytes, prelude::*},
+    ckb_types::{bytes::Bytes, core::ScriptHashType, prelude::*},
     high_level::{load_script, load_witness_args},
 };
 use core::result::Result;
@@ -23,7 +23,7 @@ pub fn main() -> Result<(), Error> {
     let pubkey_hash = {
         let script = load_script()?;
         let args: Bytes = script.args().unpack();
-        let pubkey_hash: [u8; 20] = args.try_into().unwrap();
+        let pubkey_hash: [u8; 20] = args.to_vec().try_into().unwrap();
         pubkey_hash
     };
 
@@ -32,12 +32,12 @@ pub fn main() -> Result<(), Error> {
         pubkey_hash: pubkey_hash,
     };
     let code_hash: [u8; 32] = {
-        let code_hash = hex::decode("7d6c0a3af5d58c4b59081505446fb3db44bf69af34024c78f40cc4fecec723b7").unwrap();
+        let code_hash = hex::decode("7d4ebf8efd045af51a89b77c9c012716d51ffc22c0b2e0caeb8acc1273f167c9").unwrap();
         code_hash.try_into().unwrap()
     };
     let entry = CkbEntryType {
         code_hash: code_hash,
-        hash_type: 2,
+        hash_type: ScriptHashType::Data1,
         entry_category: EntryCategoryType::Exec,
     };
     ckb_auth(&entry, &id, &signature, &message)?;

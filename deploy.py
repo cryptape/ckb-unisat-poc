@@ -7,7 +7,15 @@ hole = ckb.core.Script(
     bytearray([0] * 20)
 )
 
-with open('./build/release/unisat', 'rb') as f:
+print('auth')
+with open('./bin/auth', 'rb') as f:
+    data = f.read()
+    print(ckb.core.hash(data).hex())
+    hash = user.script_deploy(hole, data)
+    print(hash)
+
+print('unisat')
+with open('./bin/unisat', 'rb') as f:
     data = f.read()
     print(ckb.core.hash(data).hex())
     hash = user.script_deploy(hole, data)
