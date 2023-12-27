@@ -7,7 +7,7 @@ const conf = {
     url: 'https://testnet.ckb.dev',
 }
 
-interface WalletSecp256k1 {
+export interface WalletSecp256k1 {
     prikey: HexString,
     pubkey: HexString,
     script: Script,
@@ -15,7 +15,7 @@ interface WalletSecp256k1 {
     sign(hash: Hash): Hash,
 }
 
-function walletSecp256k1(privateKey: HexString): WalletSecp256k1 {
+export function walletSecp256k1(privateKey: HexString): WalletSecp256k1 {
     const script: Script = {
         codeHash: conf.lumos.SCRIPTS.SECP256K1_BLAKE160.CODE_HASH,
         hashType: conf.lumos.SCRIPTS.SECP256K1_BLAKE160.HASH_TYPE,
@@ -34,7 +34,7 @@ function walletSecp256k1(privateKey: HexString): WalletSecp256k1 {
     }
 }
 
-async function walletSecp256k1Transfer(
+export async function walletSecp256k1Transfer(
     sender: WalletSecp256k1,
     script: Script,
     capacity: BI,
@@ -90,13 +90,3 @@ async function walletSecp256k1Transfer(
     tx.witnesses[0] = bytes.hexify(blockchain.WitnessArgs.pack({ lock: txSign, inputType: undefined, outputType: undefined }))
     return await new RPC(conf.url).sendTransaction(tx, 'passthrough')
 }
-
-
-async function main() {
-    const ada = walletSecp256k1('0x0000000000000000000000000000000000000000000000000000000000000001')
-    const bob = walletSecp256k1('0x0000000000000000000000000000000000000000000000000000000000000002')
-    const ret = await walletSecp256k1Transfer(ada, bob.script, BI.from(100).mul(100000000))
-    console.log(ret)
-}
-
-main()

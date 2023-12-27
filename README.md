@@ -5,14 +5,18 @@ A demo(PoC) to support UniSat wallet on CKB.
 ```sh
 $ cd dapp
 $ npm install
-$ npm run walletUnisat
+# Transfer 100 CKB from ada to bob.
+$ npm run cmdWalletUnisat
 
 # Native Segwit
-$ npm run walletUnisat -- --address-type 0 --capacity 100
+$ npm run cmdWalletUnisat -- --address-type 0 --capacity 100
 # Nested Segwit
-$ npm run walletUnisat -- --address-type 1 --capacity 100
+$ npm run cmdWalletUnisat -- --address-type 1 --capacity 100
 # Taproot
-$ npm run walletUnisat -- --address-type 2 --capacity 100
+$ npm run cmdWalletUnisat -- --address-type 2 --capacity 100
 # Legacy
-$ npm run walletUnisat -- --address-type 3 --capacity 100
+$ npm run cmdWalletUnisat -- --address-type 3 --capacity 100
+
+# Use this demo in web browser
+$ npm run ui
 ```
