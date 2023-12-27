@@ -3,7 +3,7 @@ import { bytes } from '@ckb-lumos/codec';
 import { BI, DepType, Hash, HashType, RPC, Script, Transaction, config, helpers, utils } from '@ckb-lumos/lumos';
 import { bech32 } from 'bech32';
 import * as bs58 from 'bs58';
-import { program } from 'commander';
+
 
 const conf = {
     lumos: config.predefined.AGGRON4,
@@ -34,7 +34,7 @@ const conf = {
     },
 }
 
-interface WalletUnisat {
+export interface WalletUnisat {
     script: Script,
     addr: {
         ckb: string,
@@ -43,7 +43,7 @@ interface WalletUnisat {
     sign(hash: Hash): Promise<Hash>,
 }
 
-function walletUnisat(addr: string): WalletUnisat {
+export function walletUnisat(addr: string): WalletUnisat {
     let args = '0x'
     if (addr.startsWith('bc1q')) {
         // NativeSegwit
@@ -105,7 +105,7 @@ function walletUnisat(addr: string): WalletUnisat {
     }
 }
 
-async function walletUnisatCapacity(sender: WalletUnisat): Promise<BI> {
+export async function walletUnisatCapacity(sender: WalletUnisat): Promise<BI> {
     const r = await new RPC(conf.url).getCellsCapacity({
         script: sender.script,
         scriptType: 'lock',
@@ -116,7 +116,7 @@ async function walletUnisatCapacity(sender: WalletUnisat): Promise<BI> {
     return BI.from(r.capacity)
 }
 
-async function walletUnisatTransfer(
+export async function walletUnisatTransfer(
     sender: WalletUnisat,
     script: Script,
     capacity: BI,
@@ -176,46 +176,3 @@ async function walletUnisatTransfer(
     tx.witnesses[0] = bytes.hexify(blockchain.WitnessArgs.pack({ lock: txSign, inputType: undefined, outputType: undefined }))
     return await new RPC(conf.url).sendTransaction(tx, 'passthrough')
 }
-
-
-async function main() {
-    program
-        .option('--address-type <type>', '[0, 1, 2, 3]', '0')
-        .option('--capacity <capacity>', 'CKB', '100')
-    program.parse(process.argv);
-    const options = program.opts();
-
-    let adaAddrBTC = ''
-    let bobAddrBTC = ''
-    if (options.addressType == '0') {
-        adaAddrBTC = 'bc1qngwkvfhwnp79dzfkdw8ylfaptcv9gzvk8ggvd4'
-        bobAddrBTC = 'bc1qlqve6tdx30j7xsmuappwc5pfh7nml3anxugjke'
-    }
-    if (options.addressType == '1') {
-        adaAddrBTC = '38yEUVrMwadmde5oLn9MHvjMvZKsdfYYvE'
-        bobAddrBTC = '3Fq9p6D8xptidAhSrgWJscdfCDbkS1CyJ8'
-    }
-    if (options.addressType == '2') {
-        adaAddrBTC = 'bc1ptty9z984zhagw5c6qegfykjp8lvakwqwr39p3fs3fnzdmd7pmnpq55zgny'
-        bobAddrBTC = 'bc1p76fa25lp3latfssexyhl604kv6f3cz9h4rrsmk92wfr7j7zk572sdfsn07'
-    }
-    if (options.addressType == '3') {
-        adaAddrBTC = '1DZrVYP7wmygHtKgbybD39MVkGSwZ581fq'
-        bobAddrBTC = '1ECwWZfa2LCSCciaKFAsaXLaF7UpqSqW7H'
-    }
-
-    const ada = walletUnisat(adaAddrBTC)
-    console.log(`ada capacity: ${(await walletUnisatCapacity(ada)).div(100000000).toString()}`)
-    console.log(`ada addr.btc: ${ada.addr.btc}`)
-    console.log(`ada addr.ckb: ${ada.addr.ckb}`)
-
-    const bob = walletUnisat(bobAddrBTC)
-    console.log(`bob capacity: ${(await walletUnisatCapacity(bob)).div(100000000).toString()}`)
-    console.log(`bob addr.btc: ${bob.addr.btc}`)
-    console.log(`bob addr.ckb: ${bob.addr.ckb}`)
-
-    const ret = await walletUnisatTransfer(ada, bob.script, BI.from(options.capacity).mul(100000000))
-    console.log(`open: https://pudge.explorer.nervos.org/transaction/${ret}`)
-}
-
-main()
