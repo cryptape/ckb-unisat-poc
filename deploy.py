@@ -1,4 +1,4 @@
-import ckb
+import ckb  # Install ckb: pip install git+https://github.com/mohanson/pyckb.git`
 import sys
 
 user = ckb.scw.Scw(1)
@@ -13,11 +13,11 @@ if sys.argv[1] == 'auth':
         data = f.read()
         print('0x' + ckb.core.hash(data).hex())
         hash = user.script_deploy(hole, data)
-        print(hash)
+        print('0x' + hash.hex())
 
 if sys.argv[1] == 'unisat':
     with open('./unisat/build/release/unisat', 'rb') as f:
         data = f.read()
         print('0x' + ckb.core.hash(data).hex())
         hash = user.script_deploy(hole, data)
-        print(hash)
+        print('0x' + hash.hex())

@@ -1,8 +1,9 @@
 import { bytes } from '@ckb-lumos/codec';
-import { BI, Hash } from '@ckb-lumos/lumos';
+import { BI, Hash, helpers } from '@ckb-lumos/lumos';
 import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
-import { walletUnisat, walletUnisatCapacity, walletUnisatTransfer } from "./walletUnisat";
+import { conf, walletUnisat, walletUnisatCapacity, walletUnisatTransfer } from "./walletUnisat";
+import * as bitcoinjs from "bitcoinjs-lib"
 
 export function asyncSleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -13,10 +14,12 @@ ReactDOM.render(<App />, app);
 
 export function App() {
   const [varAdaAddrBTC, setAdaAddrBTC] = useState("");
+  const [varAdaAddrType, setAdaAddrType] = useState("?");
   const [varAdaCapacity, setAdaCapacity] = useState("0");
   const [varAdaInfo, setAdaInfo] = useState("");
 
   const [varBobAddrBTC, setBobAddrBTC] = useState("");
+  const [varBobAddrType, setBobAddrType] = useState("?");
   const [varBobCapacity, setBobCapacity] = useState("0");
   const [varBobInfo, setBobInfo] = useState("");
 
@@ -27,6 +30,24 @@ export function App() {
   useEffect(() => {
     const update = async () => {
       const ada = walletUnisat(varAdaAddrBTC);
+      if (varAdaAddrBTC.startsWith('bc1q')) {
+        setAdaAddrType('Native Segwit (P2WPKH)')
+      }
+      if (varAdaAddrBTC.startsWith('3')) {
+        setAdaAddrType('Nested Segwit (P2SH-P2WPKH)')
+      }
+      if (varAdaAddrBTC.startsWith('bc1p')) {
+        let pubkeyString = await window.unisat.getPublicKey()
+        let pubkeyBuffer = bytes.bytify('0x' + pubkeyString)
+        ada.script.args = '0x' + bitcoinjs.crypto.hash160(pubkeyBuffer).toString('hex')
+        ada.addr.ckb = helpers.encodeToAddress(ada.script, {
+          config: conf.lumos,
+        })
+        setAdaAddrType('Taproot (P2TR)')
+      }
+      if (varAdaAddrBTC.startsWith('1')) {
+        setAdaAddrType('Legacy (P2PKH)')
+      }
       setAdaCapacity((await walletUnisatCapacity(ada)).div(100000000).toString())
       setAdaInfo(JSON.stringify(ada, null, 4));
     };
@@ -38,6 +59,24 @@ export function App() {
   useEffect(() => {
     const update = async () => {
       const bob = walletUnisat(varBobAddrBTC);
+      if (varBobAddrBTC.startsWith('bc1q')) {
+        setBobAddrType('Native Segwit (P2WPKH)')
+      }
+      if (varBobAddrBTC.startsWith('3')) {
+        setBobAddrType('Nested Segwit (P2SH-P2WPKH)')
+      }
+      if (varBobAddrBTC.startsWith('bc1p')) {
+        let pubkeyString = await window.unisat.getPublicKey()
+        let pubkeyBuffer = bytes.bytify('0x' + pubkeyString)
+        bob.script.args = '0x' + bitcoinjs.crypto.hash160(pubkeyBuffer).toString('hex')
+        bob.addr.ckb = helpers.encodeToAddress(bob.script, {
+          config: conf.lumos,
+        })
+        setBobAddrType('Taproot (P2TR)')
+      }
+      if (varBobAddrBTC.startsWith('1')) {
+        setBobAddrType('Legacy (P2PKH)')
+      }
       setBobCapacity((await walletUnisatCapacity(bob)).div(100000000).toString())
       setBobInfo(JSON.stringify(bob, null, 4));
     };
@@ -59,6 +98,15 @@ export function App() {
 
   async function handleTransfer(adaAddrBTC, bobAddrBTC, capacity) {
     let ada = walletUnisat(adaAddrBTC)
+    if (adaAddrBTC.startsWith('bc1p')) {
+      // Taproot address
+      let pubkeyString = await window.unisat.getPublicKey()
+      let pubkeyBuffer = bytes.bytify('0x' + pubkeyString)
+      ada.script.args = '0x' + bitcoinjs.crypto.hash160(pubkeyBuffer).toString('hex')
+      ada.addr.ckb = helpers.encodeToAddress(ada.script, {
+        config: conf.lumos,
+      })
+    }
     ada.sign = async (hash: Hash): Promise<Hash> => {
       const signBase64 = await window.unisat.signMessage(hash.slice(2))
       let sign = Buffer.from(signBase64, 'base64')
@@ -69,7 +117,7 @@ export function App() {
         sign[0] = 35 + (sign[0] - 27) % 4
       }
       if (ada.addr.btc.startsWith('bc1p')) {
-        throw 'unreachable'
+        sign[0] = 39 + (sign[0] - 27) % 4
       }
       if (ada.addr.btc.startsWith('1')) {
         sign[0] = 31 + (sign[0] - 27) % 4
@@ -86,11 +134,14 @@ export function App() {
     <div>
       <label htmlFor="ada-addr-btc">Ada addr: </label>&nbsp;
       <input id="ada-addr-btc" value={varAdaAddrBTC} type="text" onChange={(e) => setAdaAddrBTC(e.target.value)} />
+      <div>Ada addr type: {varAdaAddrType}</div>
       <p>Ada capacity: {varAdaCapacity}</p>
       <p style={{ whiteSpace: 'pre-wrap' }}>{varAdaInfo}</p>
 
       <label htmlFor="bob-addr-btc">Bob addr: </label>&nbsp;
       <input id="bob-addr-btc" value={varBobAddrBTC} type="text" onChange={(e) => setBobAddrBTC(e.target.value)} />
+
+      <div>Bob addr type: {varBobAddrType}</div>
       <p>Bob capacity: {varBobCapacity}</p>
       <p style={{ whiteSpace: 'pre-wrap' }}>{varBobInfo}</p>
 
