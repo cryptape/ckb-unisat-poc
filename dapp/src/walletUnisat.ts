@@ -5,7 +5,7 @@ import { bech32 } from 'bech32';
 import * as bs58 from 'bs58';
 
 
-const conf = {
+export const conf = {
     lumos: config.predefined.AGGRON4,
     url: 'https://testnet.ckb.dev',
     script: {
@@ -55,7 +55,8 @@ export function walletUnisat(addr: string): WalletUnisat {
     }
     if (addr.startsWith('bc1p')) {
         // Taproot
-        throw 'unreachable'
+        console.log('Generating taproot args from addr is not supported')
+        args = '0x'
     }
     if (addr.startsWith('1')) {
         // Legacy
