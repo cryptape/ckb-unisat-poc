@@ -1,6 +1,15 @@
 # ckb-unisat-poc
 A demo(PoC) to support UniSat wallet on CKB.
 
+## Project Description
+
+* dapp
+
+The demo web UI. By this, we can transfer assets on CKB testnet with UniSat Wallet.
+
+* unisat
+
+The CKB on-chain script. It is already deployed on testnet.
 
 ## Setup
 First, please install [UniSat Wallet](https://hk.unisat.io/download).
@@ -33,25 +42,11 @@ $ npm install
 $ npm run ui
 ```
 
-Other usage:
-```sh
-# Transfer 100 CKB from ada to bob.
-$ npm run cmdWalletUnisat
-
-# Native Segwit
-$ npm run cmdWalletUnisat -- --address-type 0 --capacity 100
-# Nested Segwit
-$ npm run cmdWalletUnisat -- --address-type 1 --capacity 100
-# Taproot
-$ npm run cmdWalletUnisat -- --address-type 2 --capacity 100
-# Legacy
-$ npm run cmdWalletUnisat -- --address-type 3 --capacity 100
-```
-
 ## P2TR Address Issue
 We examined the `signMessage` API and discovered its lack of support for schnorr
-signatures. Upon transitioning to the Taproot (P2TR) address type, we obtained
-the public key for Ada:
+signatures. As its document describes, only "ecdsa"(secp256k1) is supported.
+Upon transitioning to the Taproot (P2TR) address type, we obtained the public
+key for Ada:
 
 ```javascript
 > await unisat.getPubkey();
@@ -77,5 +72,11 @@ suspect the utilization of the secp256k1 algorithm. Filling the public key and
 signature information in Native Segwit (P2WPKH) resulted in successful
 validation.
 
-While this address continues to function for sending and receiving CKBytes on
-CKB, it's essential to note that it still relies on native segwit.
+The drawback of current solution is that, as a receiver with P2TR address, users
+can't give the displaying address on UniSat wallet to senders. Instead, a new
+generated native segwit address is used via following pseudo code:
+```js
+let pubkey = unisat.getPublicKey();
+let pubkey_hash = RIPEMD160(SHA256(pubkey));
+let address = bech32_encode(pubkey_hash);
+```
