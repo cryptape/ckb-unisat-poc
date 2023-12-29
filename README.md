@@ -1,6 +1,15 @@
 # ckb-unisat-poc
 A demo(PoC) to support UniSat wallet on CKB.
 
+## Project Description
+
+* dapp
+
+The demo web UI. By this, we can transfer assets on CKB testnet with UniSat Wallet.
+
+* unisat
+
+The CKB on-chain script. It is already deployed on testnet.
 
 ## Setup
 First, please install [UniSat Wallet](https://hk.unisat.io/download).
@@ -31,21 +40,6 @@ $ cd dapp
 $ npm install
 # Use this demo in web browser
 $ npm run ui
-```
-
-Other usage:
-```sh
-# Transfer 100 CKB from ada to bob.
-$ npm run cmdWalletUnisat
-
-# Native Segwit
-$ npm run cmdWalletUnisat -- --address-type 0 --capacity 100
-# Nested Segwit
-$ npm run cmdWalletUnisat -- --address-type 1 --capacity 100
-# Taproot
-$ npm run cmdWalletUnisat -- --address-type 2 --capacity 100
-# Legacy
-$ npm run cmdWalletUnisat -- --address-type 3 --capacity 100
 ```
 
 ## P2TR Address Issue
