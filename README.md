@@ -44,8 +44,9 @@ $ npm run ui
 
 ## P2TR Address Issue
 We examined the `signMessage` API and discovered its lack of support for schnorr
-signatures. Upon transitioning to the Taproot (P2TR) address type, we obtained
-the public key for Ada:
+signatures. As its document describes, only "ecdsa"(secp256k1) is supported.
+Upon transitioning to the Taproot (P2TR) address type, we obtained the public
+key for Ada:
 
 ```javascript
 > await unisat.getPubkey();
@@ -71,5 +72,11 @@ suspect the utilization of the secp256k1 algorithm. Filling the public key and
 signature information in Native Segwit (P2WPKH) resulted in successful
 validation.
 
-While this address continues to function for sending and receiving CKBytes on
-CKB, it's essential to note that it still relies on native segwit.
+The drawback of current solution is that, as a receiver with P2TR address, users
+can't give the displaying address on UniSat wallet to senders. Instead, a new
+generated native segwit address is used via following pseudo code:
+```js
+let pubkey = unisat.getPublicKey();
+let pubkey_hash = RIPEMD160(SHA256(pubkey));
+let address = bech32_encode(pubkey_hash);
+```
