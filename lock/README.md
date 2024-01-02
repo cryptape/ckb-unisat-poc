@@ -1,14 +1,10 @@
-# unisat
+# Lock
 
 Build contracts:
 
 ``` sh
 capsule build --release
 ```
-
-## About Auth
-The `bin/auth` can be built from repo: https://github.com/nervosnetwork/ckb-auth
-(commit: 4f6dd1c)
 
 ## Deployment
 
