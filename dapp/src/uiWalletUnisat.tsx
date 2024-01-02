@@ -39,7 +39,7 @@ export function App() {
       if (varAdaAddrBTC.startsWith('bc1p')) {
         let pubkeyString = await window.unisat.getPublicKey()
         let pubkeyBuffer = bytes.bytify('0x' + pubkeyString)
-        ada.script.args = '0x' + bitcoinjs.crypto.hash160(pubkeyBuffer).toString('hex')
+        ada.script.args = '0x04' + bitcoinjs.crypto.hash160(pubkeyBuffer).toString('hex')
         ada.addr.ckb = helpers.encodeToAddress(ada.script, {
           config: conf.lumos,
         })
@@ -68,7 +68,7 @@ export function App() {
       if (varBobAddrBTC.startsWith('bc1p')) {
         let pubkeyString = await window.unisat.getPublicKey()
         let pubkeyBuffer = bytes.bytify('0x' + pubkeyString)
-        bob.script.args = '0x' + bitcoinjs.crypto.hash160(pubkeyBuffer).toString('hex')
+        bob.script.args = '0x04' + bitcoinjs.crypto.hash160(pubkeyBuffer).toString('hex')
         bob.addr.ckb = helpers.encodeToAddress(bob.script, {
           config: conf.lumos,
         })
@@ -102,7 +102,7 @@ export function App() {
       // Taproot address
       let pubkeyString = await window.unisat.getPublicKey()
       let pubkeyBuffer = bytes.bytify('0x' + pubkeyString)
-      ada.script.args = '0x' + bitcoinjs.crypto.hash160(pubkeyBuffer).toString('hex')
+      ada.script.args = '0x04' + bitcoinjs.crypto.hash160(pubkeyBuffer).toString('hex')
       ada.addr.ckb = helpers.encodeToAddress(ada.script, {
         config: conf.lumos,
       })
