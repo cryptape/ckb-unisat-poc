@@ -20,12 +20,12 @@ export const conf = {
                 depType: 'code' as DepType,
             }
         },
-        unisat: {
-            codeHash: '0x0a19d5886a6f2c1fe8c03c4c796db07bba7233e825a4d28e7e2d9e4d4e2b5414',
+        lock: {
+            codeHash: '0xd7aac16927b2d572b3803c1f68e49d082d3acc2af2614c9be752ff9cec5dc3ea',
             hashType: 'data1' as HashType,
             cellCep: {
                 outPoint: {
-                    txHash: '0x138fcdbdef2d065577e2bec73d1d6589c66a45412ab4ebcb4ea4db1fe3fcd71a',
+                    txHash: '0xe842b43df31c92d448fa345d60a6df3e03aaab19ef88921654bf95c673a26872',
                     index: '0x0',
                 },
                 depType: 'code' as DepType,
@@ -44,27 +44,26 @@ export interface WalletUnisat {
 }
 
 export function walletUnisat(addr: string): WalletUnisat {
-    let args = '0x'
+    let args = '0x04'
     if (addr.startsWith('bc1q')) {
         // NativeSegwit
-        args = bytes.hexify(bech32.fromWords(bech32.decode(addr).words.slice(1)))
+        args += bytes.hexify(bech32.fromWords(bech32.decode(addr).words.slice(1))).slice(2)
     }
     if (addr.startsWith('3')) {
         // NestedSegwit
-        args = bytes.hexify(bs58.decode(addr).slice(1, 21))
+        args += bytes.hexify(bs58.decode(addr).slice(1, 21)).slice(2)
     }
     if (addr.startsWith('bc1p')) {
         // Taproot
         console.log('Generating taproot args from addr is not supported')
-        args = '0x'
     }
     if (addr.startsWith('1')) {
         // Legacy
-        args = bytes.hexify(bs58.decode(addr).slice(1, 21))
+        args += bytes.hexify(bs58.decode(addr).slice(1, 21)).slice(2)
     }
     const script: Script = {
-        codeHash: conf.script.unisat.codeHash,
-        hashType: conf.script.unisat.hashType,
+        codeHash: conf.script.lock.codeHash,
+        hashType: conf.script.lock.hashType,
         args: args,
     }
     return {
@@ -133,7 +132,7 @@ export async function walletUnisatTransfer(
         depType: conf.lumos.SCRIPTS.SECP256K1_BLAKE160.DEP_TYPE,
     })
     tx.cellDeps.push(conf.script.auth.cellCep)
-    tx.cellDeps.push(conf.script.unisat.cellCep)
+    tx.cellDeps.push(conf.script.lock.cellCep)
     tx.outputs.push({ capacity: acceptCapacity.toHexString(), lock: acceptScript, type: undefined })
     tx.outputs.push({ capacity: changeCapacity.toHexString(), lock: changeScript, type: undefined })
     tx.outputsData.push('0x')
