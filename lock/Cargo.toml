@@ -1,5 +1,5 @@
 [workspace]
-members = ["contracts/unisat"]
+members = ["contracts/lock"]
 exclude = ["tests"]
 
 [profile.release]

@@ -9,5 +9,5 @@ version = "0.10.2 5e49142"
 deployment = "deployment.toml"
 
 [[contracts]]
-name = "unisat"
+name = "lock"
 template_type = "Rust"

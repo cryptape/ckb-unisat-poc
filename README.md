@@ -39,7 +39,7 @@ WARN: Don't send any money to these 2 accounts on UniSat Wallet! Everyone can sp
 $ cd dapp
 $ npm install
 # Use this demo in web browser
-$ npm run ui
+$ npm run uiWalletUnisat
 ```
 
 ## P2TR Address Issue
