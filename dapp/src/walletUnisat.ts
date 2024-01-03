@@ -84,7 +84,9 @@ export function walletUnisat(addr: string): WalletUnisat {
                     })
                 })
             }
-            console.log(`run code in browser console: await unisat.signMessage('${hash.slice(2)}')`)
+            console.log(`run code in browser console:`)
+            console.log(`  console.assert((await unisat.requestAccounts())[0] == '${addr}')`)
+            console.log(`  await unisat.signMessage('${hash.slice(2)}')`)
             console.log('copy signature from console:')
             let signBase64 = await readline()
             let sign = Buffer.from(signBase64, 'base64')
