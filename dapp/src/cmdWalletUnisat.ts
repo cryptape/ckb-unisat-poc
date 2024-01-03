@@ -30,11 +30,13 @@ async function main() {
 
     const ada = walletUnisat(adaAddrBTC)
     console.log(`ada capacity: ${(await walletUnisatCapacity(ada)).div(100000000).toString()}`)
+    console.log(`ada lock.arg: ${ada.script.args}`)
     console.log(`ada addr.btc: ${ada.addr.btc}`)
     console.log(`ada addr.ckb: ${ada.addr.ckb}`)
 
     const bob = walletUnisat(bobAddrBTC)
     console.log(`bob capacity: ${(await walletUnisatCapacity(bob)).div(100000000).toString()}`)
+    console.log(`bob lock.arg: ${bob.script.args}`)
     console.log(`bob addr.btc: ${bob.addr.btc}`)
     console.log(`bob addr.ckb: ${bob.addr.ckb}`)
 

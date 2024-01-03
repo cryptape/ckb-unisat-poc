@@ -1,5 +1,5 @@
-import { walletSecp256k1, walletSecp256k1Transfer } from './walletSecp256k1'
 import { BI } from '@ckb-lumos/lumos';
+import { walletSecp256k1, walletSecp256k1Transfer } from './walletSecp256k1';
 
 async function main() {
     const ada = walletSecp256k1('0x0000000000000000000000000000000000000000000000000000000000000001')
