@@ -1,48 +1,39 @@
-# ckb-unisat-poc
-A demo(PoC) to support UniSat wallet on CKB.
+# CKB UNISAT POC
+
+A demo(PoC) to support common browser BTC wallets on CKB. Through this project, you can use BTC addresses and BTC wallets to receive and send CKB. Currently supported wallets:
+
+- [Unisat](https://unisat.io/)
+- [OKX](https://www.okx.com/en/web3)
 
 ## Project Description
 
-* dapp
+* `./dapp`. The demo web UI. By this, we can transfer assets on CKB testnet with browser wallets.
+* `./lock`. The CKB on-chain script. It is already deployed on testnet.
 
-The demo web UI. By this, we can transfer assets on CKB testnet with UniSat Wallet.
+## Run With Unisat
 
-* unisat
+0. Install [UniSat Wallet](https://hk.unisat.io/download).
+0. Restore two accounts from mnemonic phrase. These two accounts have CKB available for testing.
+    0. `cousin minimum crazy knock electric curve inflict acid neck gift castle slush`.
+    0. `soup butter loud convince rabbit horn salute clump still amount immune sustain`.
+0. Select the address format. It can be `Native Segwit`, `Nested Segwit`, `Legacy` or `Taproot`.
+0. Run web ui by `cd dapp && npm install && npm run uiWalletUnisat`.
 
-The CKB on-chain script. It is already deployed on testnet.
+> Note that Taproot addresses are not fully supported at the moment. When you select a Taproot address, you will find that the address displayed on the web page is different from the address in your wallet. This is normal. You can still spend CKB from the Taproot address. However, if you want to transfer CKB to your Taproot address, then the To addr should be filled in with the new address shown on the web page, not the Taproot address shown by the wallet.
 
-## Setup
-First, please install [UniSat Wallet](https://hk.unisat.io/download).
+## Run With OKX
 
-To avoid setup accounts and balances from scratch on CBK testnet, we have
-exported 2 accounts from UniSat Wallet: Ada and Bob. We have hard coded these 2
-accounts in demo.
+0. Install [OKX Wallet](https://www.okx.com/en/web3).
+0. Restore two accounts from mnemonic phrase. These two accounts have CKB available for testing.
+    0. `cousin minimum crazy knock electric curve inflict acid neck gift castle slush`.
+    0. `soup butter loud convince rabbit horn salute clump still amount immune sustain`.
+0. Select the address format. It can be `Native Segwit`, `Nested Segwit`, `Legacy` or `Taproot`.
+0. Run web ui by `cd dapp && npm install && npm run uiWalletOkx`.
 
-* In the top right corner of the UniSat Wallet interface, click on HD Wallet #n.
-* Click the + in the top right corner.
-* Select "Restore from mnemonics."
-* Choose "UniSat Wallet."
-* Choose 12 words and fill mnemonic phrase: cousin minimum crazy knock electric curve inflict acid neck gift castle slush
-* Choose "Native Segwit (P2WPKH)" can be modified later.
-* Verify that the wallet address is: bc1qngwkvfhwnp79dzfkdw8ylfaptcv9gzvk8ggvd4.
+> Note that Taproot addresses are not fully supported at the moment. When you select a Taproot address, you will find that the address displayed on the web page is different from the address in your wallet. This is normal. You can still spend CKB from the Taproot address. However, if you want to transfer CKB to your Taproot address, then the To addr should be filled in with the new address shown on the web page, not the Taproot address shown by the wallet.
 
-Name this wallet as Ada. Applying some steps as above for Bob:
+## P2TR(Taproot) Address Issue Explanation
 
-Mnemonic phrase: soup butter loud convince rabbit horn salute clump still amount immune sustain
-
-Address: bc1qlqve6tdx30j7xsmuappwc5pfh7nml3anxugjke
-
-WARN: Don't send any money to these 2 accounts on UniSat Wallet! Everyone can spend them.
-
-## Tested in testnet
-```sh
-$ cd dapp
-$ npm install
-# Use this demo in web browser
-$ npm run uiWalletUnisat
-```
-
-## P2TR Address Issue
 We examined the `signMessage` API and discovered its lack of support for schnorr
 signatures. As its document describes, only "ecdsa"(secp256k1) is supported.
 Upon transitioning to the Taproot (P2TR) address type, we obtained the public

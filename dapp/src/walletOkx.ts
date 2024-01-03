@@ -53,10 +53,6 @@ export function walletOkx(addr: string): WalletOkx {
         // NestedSegwit
         args += bytes.hexify(bs58.decode(addr).slice(1, 21)).slice(2)
     }
-    if (addr.startsWith('bc1p')) {
-        // Taproot
-        console.log('Generating taproot args from addr is not supported')
-    }
     if (addr.startsWith('1')) {
         // Legacy
         args += bytes.hexify(bs58.decode(addr).slice(1, 21)).slice(2)
@@ -95,9 +91,6 @@ export function walletOkx(addr: string): WalletOkx {
             }
             if (addr.startsWith('3')) {
                 sign[0] = 35 + (sign[0] - 27) % 4
-            }
-            if (addr.startsWith('bc1p')) {
-                throw 'unreachable'
             }
             if (addr.startsWith('1')) {
                 sign[0] = 31 + (sign[0] - 27) % 4

@@ -1,9 +1,10 @@
 import { bytes } from '@ckb-lumos/codec';
 import { BI, Hash, helpers } from '@ckb-lumos/lumos';
+import { bech32 } from 'bech32';
+import * as bitcoinjs from "bitcoinjs-lib";
 import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import { conf, walletOkx, walletOkxCapacity, walletOkxTransfer } from "./walletOkx";
-import * as bitcoinjs from "bitcoinjs-lib"
 
 export function asyncSleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -36,15 +37,6 @@ export function App() {
       if (varAdaAddrBTC.startsWith('3')) {
         setAdaAddrType('Nested Segwit (P2SH-P2WPKH)')
       }
-      if (varAdaAddrBTC.startsWith('bc1p')) {
-        let pubkeyString = (await window.okxwallet.bitcoin.connect()).compressedPublicKey
-        let pubkeyBuffer = bytes.bytify('0x' + pubkeyString)
-        ada.script.args = '0x04' + bitcoinjs.crypto.hash160(pubkeyBuffer).toString('hex')
-        ada.addr.ckb = helpers.encodeToAddress(ada.script, {
-          config: conf.lumos,
-        })
-        setAdaAddrType('Taproot (P2TR)')
-      }
       if (varAdaAddrBTC.startsWith('1')) {
         setAdaAddrType('Legacy (P2PKH)')
       }
@@ -65,15 +57,6 @@ export function App() {
       if (varBobAddrBTC.startsWith('3')) {
         setBobAddrType('Nested Segwit (P2SH-P2WPKH)')
       }
-      if (varBobAddrBTC.startsWith('bc1p')) {
-        let pubkeyString = (await window.okxwallet.bitcoin.connect()).compressedPublicKey
-        let pubkeyBuffer = bytes.bytify('0x' + pubkeyString)
-        bob.script.args = '0x04' + bitcoinjs.crypto.hash160(pubkeyBuffer).toString('hex')
-        bob.addr.ckb = helpers.encodeToAddress(bob.script, {
-          config: conf.lumos,
-        })
-        setBobAddrType('Taproot (P2TR)')
-      }
       if (varBobAddrBTC.startsWith('1')) {
         setBobAddrType('Legacy (P2PKH)')
       }
@@ -88,8 +71,19 @@ export function App() {
   useEffect(() => {
     const f = async () => {
       await new Promise((resolve) => setTimeout(resolve, 100))
-      const ada = await window.okxwallet.bitcoin.connect();
-      setAdaAddrBTC(ada.address)
+      const user = await window.okxwallet.bitcoin.connect();
+      const addr = user.address
+      if (addr.startsWith('bc1p')) {
+        // Taproot
+        let pubkeyString = user.compressedPublicKey
+        let pubkeyBuffer = bytes.bytify('0x' + pubkeyString)
+        let pubkeyHash = bitcoinjs.crypto.hash160(pubkeyBuffer);
+        let pubkeyWord = bech32.toWords(pubkeyHash)
+        pubkeyWord.unshift(0)
+        setAdaAddrBTC(bech32.encode('bc', pubkeyWord))
+      } else {
+        setAdaAddrBTC(addr)
+      }
       setBobAddrBTC('bc1qlqve6tdx30j7xsmuappwc5pfh7nml3anxugjke')
     };
     f()
@@ -97,26 +91,16 @@ export function App() {
 
   async function handleTransfer(adaAddrBTC, bobAddrBTC, capacity) {
     let ada = walletOkx(adaAddrBTC)
-    if (adaAddrBTC.startsWith('bc1p')) {
-      // Taproot address
-      let pubkeyString = (await window.okxwallet.bitcoin.connect()).compressedPublicKey
-      let pubkeyBuffer = bytes.bytify('0x' + pubkeyString)
-      ada.script.args = '0x04' + bitcoinjs.crypto.hash160(pubkeyBuffer).toString('hex')
-      ada.addr.ckb = helpers.encodeToAddress(ada.script, {
-        config: conf.lumos,
-      })
-    }
     ada.sign = async (hash: Hash): Promise<Hash> => {
-      const signBase64 = await window.okxwallet.bitcoin.signMessage(hash.slice(2), { from: ada.addr.btc })
+      const signBase64 = await window.okxwallet.bitcoin.signMessage(hash.slice(2), {
+        from: (await window.okxwallet.bitcoin.connect()).address
+      })
       let sign = Buffer.from(signBase64, 'base64')
       if (ada.addr.btc.startsWith('bc1q')) {
         sign[0] = 39 + (sign[0] - 27) % 4
       }
       if (ada.addr.btc.startsWith('3')) {
         sign[0] = 35 + (sign[0] - 27) % 4
-      }
-      if (ada.addr.btc.startsWith('bc1p')) {
-        sign[0] = 39 + (sign[0] - 27) % 4
       }
       if (ada.addr.btc.startsWith('1')) {
         sign[0] = 31 + (sign[0] - 27) % 4
@@ -131,18 +115,18 @@ export function App() {
 
   return (
     <div>
-      <p>Ada addr: {varAdaAddrBTC}</p>
-      <p>Ada addr type: {varAdaAddrType}</p>
-      <p>Ada capacity: {varAdaCapacity}</p>
+      <p>From addr: {varAdaAddrBTC}</p>
+      <p>From addr type: {varAdaAddrType}</p>
+      <p>From capacity: {varAdaCapacity}</p>
       <p style={{ whiteSpace: 'pre-wrap' }}>{varAdaInfo}</p>
 
-      <label htmlFor="bob-addr-btc">Bob addr: </label>&nbsp;
+      <label htmlFor="bob-addr-btc">To addr: </label>
       <input id="bob-addr-btc" value={varBobAddrBTC} type="text" onChange={(e) => setBobAddrBTC(e.target.value)} />
-      <p>Bob addr type: {varBobAddrType}</p>
-      <p>Bob capacity: {varBobCapacity}</p>
+      <p>To addr type: {varBobAddrType}</p>
+      <p>To capacity: {varBobCapacity}</p>
       <p style={{ whiteSpace: 'pre-wrap' }}>{varBobInfo}</p>
 
-      <label htmlFor="capacity">Capacity</label>&nbsp;
+      <label htmlFor="capacity">Capacity</label>
       <input id="capacity" value={varCapacity} type="text" onChange={(e) => setCapacity(e.target.value)} />
       <br />
 

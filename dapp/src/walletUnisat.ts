@@ -55,7 +55,7 @@ export function walletUnisat(addr: string): WalletUnisat {
     }
     if (addr.startsWith('bc1p')) {
         // Taproot
-        console.log('Generating taproot args from addr is not supported')
+        throw 'unreachable'
     }
     if (addr.startsWith('1')) {
         // Legacy
