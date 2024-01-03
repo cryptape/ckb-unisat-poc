@@ -14,8 +14,8 @@ A demo(PoC) to support common browser BTC wallets on CKB. Through this project, 
 
 0. Install [UniSat Wallet](https://hk.unisat.io/download).
 0. Restore two accounts from mnemonic phrase. These two accounts have CKB available for testing.
-    0. `cousin minimum crazy knock electric curve inflict acid neck gift castle slush`.
-    0. `soup butter loud convince rabbit horn salute clump still amount immune sustain`.
+    1. `cousin minimum crazy knock electric curve inflict acid neck gift castle slush`.
+    2. `soup butter loud convince rabbit horn salute clump still amount immune sustain`.
 0. Select the address format. It can be `Native Segwit`, `Nested Segwit`, `Legacy` or `Taproot`.
 0. Run web ui by `cd dapp && npm install && npm run uiWalletUnisat`.
 
@@ -25,8 +25,8 @@ A demo(PoC) to support common browser BTC wallets on CKB. Through this project, 
 
 0. Install [OKX Wallet](https://www.okx.com/en/web3).
 0. Restore two accounts from mnemonic phrase. These two accounts have CKB available for testing.
-    0. `cousin minimum crazy knock electric curve inflict acid neck gift castle slush`.
-    0. `soup butter loud convince rabbit horn salute clump still amount immune sustain`.
+    1. `cousin minimum crazy knock electric curve inflict acid neck gift castle slush`.
+    2. `soup butter loud convince rabbit horn salute clump still amount immune sustain`.
 0. Select the address format. It can be `Native Segwit`, `Nested Segwit`, `Legacy` or `Taproot`.
 0. Run web ui by `cd dapp && npm install && npm run uiWalletOkx`.
 
