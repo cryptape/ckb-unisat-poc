@@ -86,7 +86,6 @@ export function walletOkx(addr: string): WalletOkx {
             }
             console.log(`run code in browser console:`)
             console.log(`  ada = await okxwallet.bitcoin.connect();`)
-            console.log(`  console.assert(ada['address'] == '${addr}')`)
             console.log(`  await okxwallet.bitcoin.signMessage('${hash.slice(2)}', { from: ada['address'] })`)
             console.log('copy signature from console:')
             let signBase64 = await readline()
