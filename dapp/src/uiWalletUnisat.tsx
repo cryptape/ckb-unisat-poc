@@ -132,16 +132,14 @@ export function App() {
 
   return (
     <div>
-      <label htmlFor="ada-addr-btc">Ada addr: </label>&nbsp;
-      <input id="ada-addr-btc" value={varAdaAddrBTC} type="text" onChange={(e) => setAdaAddrBTC(e.target.value)} />
-      <div>Ada addr type: {varAdaAddrType}</div>
+      <p>Ada addr: {varAdaAddrBTC}</p>
+      <p>Ada addr type: {varAdaAddrType}</p>
       <p>Ada capacity: {varAdaCapacity}</p>
       <p style={{ whiteSpace: 'pre-wrap' }}>{varAdaInfo}</p>
 
       <label htmlFor="bob-addr-btc">Bob addr: </label>&nbsp;
       <input id="bob-addr-btc" value={varBobAddrBTC} type="text" onChange={(e) => setBobAddrBTC(e.target.value)} />
-
-      <div>Bob addr type: {varBobAddrType}</div>
+      <p>Bob addr type: {varBobAddrType}</p>
       <p>Bob capacity: {varBobCapacity}</p>
       <p style={{ whiteSpace: 'pre-wrap' }}>{varBobInfo}</p>
 
