@@ -10,7 +10,16 @@ capsule build --release
 
 This demo contract is deployed on testnet:
 
-```
-code_hash: 0x0a19d5886a6f2c1fe8c03c4c796db07bba7233e825a4d28e7e2d9e4d4e2b5414
-hash_type: data1
+```js
+{
+    codeHash: '0xd7aac16927b2d572b3803c1f68e49d082d3acc2af2614c9be752ff9cec5dc3ea',
+    hashType: 'data1' as HashType,
+    cellCep: {
+        outPoint: {
+            txHash: '0xe842b43df31c92d448fa345d60a6df3e03aaab19ef88921654bf95c673a26872',
+            index: '0x0',
+        },
+        depType: 'code' as DepType,
+    }
+}
 ```
