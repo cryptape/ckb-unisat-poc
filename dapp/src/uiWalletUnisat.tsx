@@ -10,6 +10,7 @@ export function asyncSleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+declare const window: any;
 const app = document.getElementById("root");
 ReactDOM.render(<App />, app);
 
@@ -76,8 +77,7 @@ export function App() {
       if (addr.startsWith('bc1p')) {
         // Taproot
         let pubkeyString = await window.unisat.getPublicKey()
-        let pubkeyBuffer = bytes.bytify('0x' + pubkeyString)
-        let pubkeyHash = bitcoinjs.crypto.hash160(pubkeyBuffer);
+        let pubkeyHash = bitcoinjs.crypto.hash160(Buffer.from(pubkeyString, 'hex'));
         let pubkeyWord = bech32.toWords(pubkeyHash)
         pubkeyWord.unshift(0)
         setAdaAddrBTC(bech32.encode('bc', pubkeyWord))
